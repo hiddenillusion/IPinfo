@@ -3,7 +3,7 @@
 # IPinfo.py was created by Glenn P. Edwards Jr.
 #   http://hiddenillusion.blogspot.com
 #       @hiddenillusion
-# Version 0.1
+# Version 0.1.1
 # Date: 12-18-2012
 
 """
@@ -153,9 +153,9 @@ def hpHosts(s):
     """
     url = "http://verify.hosts-file.net/?v=IPinfo&s="
     arg = "&class=true&date=true&ip=true&ipptr=true&nb=1"
-    page = urllib2.urlopen(url + s + arg)
     print (header("hpHosts"))
     try:
+        page = urllib2.urlopen(url + s + arg)        
         soup = BeautifulSoup(page)
         # strip HTML page breaks etc.
         txt = soup.findAll(text=lambda txt:isinstance(txt, NavigableString))
@@ -190,8 +190,8 @@ def hpHosts(s):
                         s = re.sub("(^\su|'|\")","",i)
                         if not re.match('(^%\s|^%$|^$)',s):
                             print s
-    except Exception:
-        pass
+    except Exception, msg:
+        print msg        
 
 def SafeBrowsing(s):
     """
@@ -246,17 +246,20 @@ def WOT(s):
         return con 
 
     url = "http://api.mywot.com/0.4/public_query2?target="
-    page = urllib2.urlopen(url + s).read()
-    soup = BeautifulSoup(page)
-    hits = soup.findAll('application')
-    if len(hits):
-        try:
-            print (subTitle("      Category | Reputation | Confidence"))
-            for h in hits:
-                print "%15s: %-s, %s" % (category(h['name']),score(h['r']),score(h['c']))
-        except Exception, msg:
-            print msg
-    else: print "No Match"
+    try:    
+        page = urllib2.urlopen(url + s).read()
+        soup = BeautifulSoup(page)
+        hits = soup.findAll('application')
+        if len(hits):
+            try:
+                print (subTitle("      Category | Reputation | Confidence"))
+                for h in hits:
+                    print "%15s: %-s, %s" % (category(h['name']),score(h['r']),score(h['c']))
+            except Exception, msg:
+                print msg
+        else: print "No Match"
+    except Exception, msg:
+        print msg        
 
 def VirusTotal(s):
     """
@@ -271,8 +274,8 @@ def VirusTotal(s):
         parameters = {"resource": s, 
                       "apikey": api_key} 
         data = urllib.urlencode(parameters)
-        req = urllib2.Request(url, data)
         try:
+            req = urllib2.Request(url, data)            
             response = urllib2.urlopen(req)
             result = response.read()
             rpt = simplejson.loads(result)
@@ -284,8 +287,8 @@ def VirusTotal(s):
             for scanner in rpt["scans"]:
                 if not re.match('clean site',rpt["scans"][scanner]["result"]):
                     print "%23s : %-s" % (scanner,rpt["scans"][scanner]["result"])
-        except Exception:
-            print "No Match"
+        except Exception, msg:
+            print msg
 
 def main():
     GeoIP(s)
