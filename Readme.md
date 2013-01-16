@@ -55,3 +55,15 @@ Example output
                 SecureBrain : unrated site
                    URLQuery : unrated site
                     Wepawet : unrated site	
+					
+    netdemon
+    ========================================
+     Protocol:  http
+         Host:  dmssmgf.ru
+         Path:  /
+
+    URLvoid
+    ========================================
+    Last Scan  : Jan 15 2013
+    Detected   : 1
+    Detections : SpamhausDBL					

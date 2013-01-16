@@ -15,10 +15,11 @@ Requirements:
 -------------
     - simplejson
     - BeautifulSoup
-    - API keys from Virus Total, Google Safe Browsing & Project Honeypot
+    - API keys from Virus Total, Google Safe Browsing, Project Honeypot & URLvoid
 
  To-do:
 --------
+    - cleanup netdemon and urlvoid code
 	- McAfee SiteAdvisor / TrustedSoruce
 	- exsporure.iseclab.org
 	- robtex
@@ -76,7 +77,7 @@ def Honeypot(s):
     Project Honeypot's Http:BL API info: https://www.projecthoneypot.org/httpbl_api.php
     """
     print (header("Project Honeypot"))
-    api_key = "YOUR_API_KEY"
+    api_key = ""
     if not api_key:
         print "[!] You must configure your Project Honeypot API key"
         return
@@ -198,7 +199,7 @@ def SafeBrowsing(s):
     Google SafeBrowsing API info: https://developers.google.com/safe-browsing/
     """
     print (header("Google Safe Browsing"))
-    api_key = "YOUR_API_KEY"
+    api_key = ""
     if not api_key:
         print "[!] You must configure your Google SafeBrowsing API key"
     else:
@@ -266,8 +267,8 @@ def VirusTotal(s):
     VirusTotal API info: https://www.virustotal.com/documentation/public-api/
     """
     print (header("Virus Total"))
-    api_key = "YOUR_API_KEY"
-    if not re.match('\d+', api_key):
+    api_key = ""
+    if not api_key:
         print "[!] You must configure your VirusTotal API key"
     else:
         url = "https://www.virustotal.com/vtapi/v2/url/report"
@@ -290,6 +291,54 @@ def VirusTotal(s):
         except Exception, msg:
             print msg
 
+def netdemon(s):
+    """
+    *fix this up*
+    Site that helps deobfuscate some of those tricky obfuscations/encodings
+    """
+    print (header("netdemon"))
+    url = "http://www.netdemon.net/decode.cgi?url="
+    try:
+        page = urllib2.urlopen(url + s)        
+        soup = BeautifulSoup(page)
+        # strip HTML page breaks etc.
+        txt = soup.findAll(text=lambda txt:isinstance(txt, NavigableString))
+        for l in txt:
+            if re.search('(Protocol|Host|Path):\s*', l): 
+                print l
+    except Exception, msg:
+        print msg
+
+def urlVoid(s):
+    """
+    API info: http://blog.urlvoid.com/urlvoid-api-v2-0/
+    Restrictions: < 1,0000 per day
+    * if "-1" is returned it means the domain has not been yet scanned
+    """
+    print (header("URLvoid"))
+    api_key = ""
+    if not api_key:
+        print "[!] You must configure your URLvoid API key"
+    else:
+        url = "http://api.urlvoid.com/index/exec/"
+        parameters = {"domains": s, 
+                      "api": api_key, 
+                      "go": 'Check'}
+        data = urllib.urlencode(parameters)
+        try:
+            page = urllib2.urlopen(url, data)
+            soup = BeautifulSoup(page)
+            new_date = datetime.fromtimestamp(int(soup.find("details")['last_scan'])).strftime("%b %d %Y")
+            print "Last Scan  :",new_date
+            detect_cnt = soup.find("details")['detected']
+            if detect_cnt == "-1":
+                print "Not scanned yet"
+            else:
+                print "Detected   :",detect_cnt
+            if detect_cnt > "0":
+                print "Detections :",soup.find("details")['lists_detected']
+        except Exception, msg:
+            print msg
 def main():
     GeoIP(s)
     hpHosts(s)
@@ -298,6 +347,8 @@ def main():
     VirusTotal(s)
     if re.match('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}', s):
         Honeypot(s)
+    netdemon(s)
+    urlVoid(s)
 
 if __name__ == "__main__":
         main()
