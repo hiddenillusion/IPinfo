@@ -3,7 +3,7 @@
 # IPinfo.py was created by Glenn P. Edwards Jr.
 #   http://hiddenillusion.blogspot.com
 #       @hiddenillusion
-# Version 0.1.1
+# Version 0.1.2
 # Date: 12-18-2012
 
 """
@@ -42,9 +42,22 @@ import socket
 import simplejson
 from datetime import datetime
 from time import localtime, strftime
-from BeautifulSoup import BeautifulSoup, NavigableString
+try:
+    from BeautifulSoup import BeautifulSoup, NavigableString
+except ImportError:
+    try:
+        # Things changed a bit in the newer version	
+        from bs4 import BeautifulSoup, NavigableString	
+    except ImportError:		
+        print "[!] BeautifulSoup not installed"
+        sys.exit(1)
+    
+if len(sys.argv) == 1:
+    print "[!] I need something to analyze"
+    sys.exit(1)
+else:
+    s = sys.argv[1]
 
-s = sys.argv[1]
 # sanity check for WOT
 if re.match('^http(s)?://.*', s):
     s = re.sub('^http(s)?://','',s)
@@ -191,8 +204,7 @@ def hpHosts(s):
                         s = re.sub("(^\su|'|\")","",i)
                         if not re.match('(^%\s|^%$|^$)',s):
                             print s
-    except Exception, msg:
-        print msg        
+    except Exception: pass
 
 def SafeBrowsing(s):
     """
@@ -217,8 +229,7 @@ def SafeBrowsing(s):
             if len(result):
                 print "[-] Classification: ",result
             else: print "No Match"
-        except Exception, msg:
-            print msg
+        except Exception: pass
 
 def WOT(s):
     """
@@ -259,8 +270,7 @@ def WOT(s):
             except Exception, msg:
                 print msg
         else: print "No Match"
-    except Exception, msg:
-        print msg        
+    except Exception: pass     
 
 def VirusTotal(s):
     """
@@ -306,8 +316,7 @@ def netdemon(s):
         for l in txt:
             if re.search('(Protocol|Host|Path):\s*', l): 
                 print l
-    except Exception, msg:
-        print msg
+    except Exception: pass
 
 def urlVoid(s):
     """
